@@ -50,6 +50,7 @@ if(ANDROID)
             set_property(TARGET OpenXR
                 PROPERTY IMPORTED_LOCATION ${OCULUS_SDK_PATH}/OpenXR/Libs/Android/${ANDROID_ABI}/Release/libopenxr_loader.so)
         endif()
+        target_link_libraries(wivrn OpenXR)
     elseif (PICO)
         set(PICO_SDK_PATH ${CMAKE_SOURCE_DIR}/external/pico)
         if(NOT EXISTS ${PICO_SDK_PATH})
