@@ -4,83 +4,54 @@
 
 OpenXR streaming application
 
-<img src="images/wivrn.svg" width="180">
-
 WiVRn lets you run OpenXR applications on a computer and display them on a standalone headset.
 
 # Installation
 ## Server (PC)
-
-See [building](docs/building.md).
-
-## Client (headset)
-### Prebuilt apk
-Download apk from [Releases](https://github.com/Meumeu/WiVRn/releases).
-Install with adb (headset connected to PC), developer mode must be enabled.
+From your checkout directory
 ```bash
-adb install WiVRn.apk
-```
+cmake -B build-server . -GNinja -DWIVRN_BUILD_CLIENT=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-server
 
-### Compilation
-
-See [building](docs/building.md#client-headset).
-
-# Usage
-
-## Set WiVRn as default OpenXR runtime
-
-In order to set WiVRn as the default OpenXR runtime, you can run the collowing commands:
-```bash
+# Set WiVRn as the active OpenXR runtime, delete ~/.config/openxr/1/active_runtime.json after you are done using WiVRn
 mkdir -p ~/.config/openxr/1/
 ln --relative --symbolic --force build-server/openxr_wivrn-dev.json ~/.config/openxr/1/active_runtime.json
 ```
 
-Alternatively, setting the environment `XR_RUNTIME_JSON="${PWD}/build-server/openxr_wivrn-dev.json"` will set it for the current shell only.
-
-## Running
-
-### Prerequisites
-Avahi must be running:
+## Client (headset)
+At this early stage of development, we do not have stable releases. Only Oculus Quest is supported.
+Download apk from [Releases](https://github.com/Meumeu/WiVRn/releases).
+Install with adb (headset connected to PC), developer mode must be activated on Quest.
 ```bash
-systemctl enable --now avahi-daemon
+adb install WiVRn-oculus.apk
 ```
 
-If a firewall is installed, open port 5353/UDP for avahi.
-Open ports 9757/UDP+TCP for WiVRn itself.
-
-### Running
+# Usage
 On the computer, run `wivrn-server`, from checkout directory
 ```bash
 build-server/server/wivrn-server
 ```
 Then, on headset, launch WiVRn from the App Library, in "unknown sources" section.
 
-You should now see your server in the list, click connect, screen will show "waiting for video stream".
+You will briefly have a "Waiting for connection" screen, followed by "Waiting for video stream".
 Now on your computer you can run an OpenXR application, and it will show on your headset, enjoy!
 
-# Configuration
-Configuration is done on server side, in `$XDG_CONFIG_HOME/wivrn/config.json` or if `$XDG_CONFIG_HOME` is not set, `$HOME/.config/wivrn/config.json`.
-
-All elements are optional and have default values.
-
-See [configuration](docs/configuration.md) for configurable items.
+# TODO
+* Sound support (recording)
+* Improve sound playback latency
+* SteamVR support with [OpenComposite](https://gitlab.com/znixian/OpenOVR)
+* Latency improvement
+* Application launcher
+* Support more headsets
 
 # Credits
 WiVRn uses the following software:
-- [ambientCG](https://ambientcg.com/)
-- [Avahi](https://www.avahi.org/)
-- [Boost.PFR](https://github.com/boostorg/pfr)
-- [Dear ImGui](https://github.com/ocornut/imgui)
-- [fastgltf](https://github.com/spnda/fastgltf)
-- [ffmpeg](https://ffmpeg.org/) optional, for hardware encoding on AMD/Intel
-- [FreeType](https://freetype.org/)
-- [glm](http://glm.g-truc.net/)
-- [HarfBuzz](https://harfbuzz.github.io/)
 - [Monado](https://monado.freedesktop.org/)
-- [nvenc](https://developer.nvidia.com/nvidia-video-codec-sdk) optional, for hardware encoding on Nvidia
-- [Roboto](https://fonts.google.com/specimen/Roboto)
-- [sd-bus](https://www.freedesktop.org/software/systemd/man/sd-bus.html)
+- [glm](http://glm.g-truc.net/)
+- [Boost.PFR](https://github.com/boostorg/pfr)
 - [spdlog](https://github.com/gabime/spdlog)
-- [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
-- [WebXR input profiles](https://www.npmjs.com/package/@webxr-input-profiles/motion-controllers)
-- [x264](https://www.videolan.org/developers/x264.html) optional, for software encoding
+- [FreeType](https://freetype.org/)
+- [HarfBuzz](https://harfbuzz.github.io/)
+- [x264](https://www.videolan.org/developers/x264.html), [ffmpeg](https://ffmpeg.org/) and/or [nvenc](https://developer.nvidia.com/nvidia-video-codec-sdk) depending on the compilation options
+- [Avahi](https://www.avahi.org/)
+- [sd-bus](https://www.freedesktop.org/software/systemd/man/sd-bus.html)
