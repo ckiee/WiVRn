@@ -21,7 +21,36 @@ if(ANDROID)
     find_library(AAUDIO_LIBRARY NAMES aaudio REQUIRED)
     target_link_libraries(wivrn ${ANDROID_LIBRARY} ${MEDIA_LIBRARY} ${AAUDIO_LIBRARY})
 
-    if (PICO)
+    if(OCULUS)
+        set(OCULUS_SDK_PATH ${CMAKE_SOURCE_DIR}/external/oculus)
+
+        if(NOT EXISTS ${OCULUS_SDK_PATH})
+            file(GLOB OCULUS_SDK_ZIP ${CMAKE_SOURCE_DIR}/ovr_openxr_mobile_sdk_*.zip)
+
+            if("${OCULUS_SDK_ZIP}" STREQUAL "")
+                message(FATAL_ERROR "Download the Oculus SDK from https://developer.oculus.com/downloads/package/oculus-openxr-mobile-sdk in ${CMAKE_SOURCE_DIR}/ovr_openxr_mobile_sdk_*.zip")
+            endif()
+
+            file(ARCHIVE_EXTRACT
+                INPUT ${OCULUS_SDK_ZIP}
+                DESTINATION ${OCULUS_SDK_PATH}
+                PATTERNS 3rdParty/khronos/openxr/OpenXR-SDK/include/openxr OpenXR/Include OpenXR/Libs/Android
+                VERBOSE)
+        endif()
+
+        add_library(OpenXR SHARED IMPORTED)
+        target_include_directories(OpenXR INTERFACE
+            ${OCULUS_SDK_PATH}/3rdParty/khronos/openxr/OpenXR-SDK/include
+            ${OCULUS_SDK_PATH}/OpenXR/Include)
+
+        if(CMAKE_BUILD_TYPE STREQUAL Debug)
+            set_property(TARGET OpenXR
+                PROPERTY IMPORTED_LOCATION ${OCULUS_SDK_PATH}/OpenXR/Libs/Android/${ANDROID_ABI}/Debug/libopenxr_loader.so)
+        else()
+            set_property(TARGET OpenXR
+                PROPERTY IMPORTED_LOCATION ${OCULUS_SDK_PATH}/OpenXR/Libs/Android/${ANDROID_ABI}/Release/libopenxr_loader.so)
+        endif()
+    elseif (PICO)
         set(PICO_SDK_PATH ${CMAKE_SOURCE_DIR}/external/pico)
         if(NOT EXISTS ${PICO_SDK_PATH})
             file(GLOB PICO_SDK_PATH ${CMAKE_SOURCE_DIR}/PICO_OpenXR_SDK_*.zip)
@@ -45,9 +74,7 @@ if(ANDROID)
                 PROPERTY IMPORTED_LOCATION ${PICO_SDK_PATH}/libs/android.${ANDROID_ABI}/libopenxr_loader.so)
         target_link_libraries(wivrn OpenXR)
     else()
-        set(DYNAMIC_LOADER OFF)
-        FetchContent_MakeAvailable(openxr_loader)
-        target_link_libraries(wivrn openxr_loader)
+        message(FATAL_ERROR "oopsiee")
     endif()
 
 

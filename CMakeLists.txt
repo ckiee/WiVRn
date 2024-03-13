@@ -152,8 +152,6 @@ if (WIVRN_BUILD_CLIENT AND NOT ANDROID)
 endif()
 
 if(ANDROID)
-    set(ANDROID_NDK $ENV{ANDROID_NDK_ROOT})
-    set(CMAKE_ANDROID_NDK $ENV{ANDROID_NDK_ROOT})
     include(AndroidNdkModules)
     android_ndk_import_module_native_app_glue()
 endif()
