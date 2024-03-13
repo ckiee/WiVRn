@@ -187,26 +187,26 @@ jobs:
         chmod +x gradlew
         ./gradlew assemble${{ matrix.hmd }}${{ matrix.buildtype }}
 
-    - name: Prepare before archiving artifacts
-      run: |
-        mkdir apk
-        mv $(find build/outputs/apk/ -name "*.apk") apk/
-        mkdir debug
-        mv build/intermediates/merged_native_libs/*/out/lib/* debug/
-        find debug -name libopenxr_loader.so -delete
+    # - name: Prepare before archiving artifacts
+    #   run: |
+    #     mkdir apk
+    #     mv $(find build/outputs/apk/ -name "*.apk") apk/
+    #     mkdir debug
+    #     mv build/intermediates/merged_native_libs/*/out/lib/* debug/
+    #     find debug -name libopenxr_loader.so -delete
 
-    - name: Archive APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: apk-${{ matrix.hmd }}-${{ (github.event_name == 'pull_request' && matrix.buildtype == 'Release') && 'Release-unsigned' || matrix.buildtype }}
-        path: apk/*.apk
+    # - name: Archive APK
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: apk-${{ matrix.hmd }}-${{ (github.event_name == 'pull_request' && matrix.buildtype == 'Release') && 'Release-unsigned' || matrix.buildtype }}
+    #     path: apk/*.apk
 
-    - name: Archive debug symbols
-      if: ${{ matrix.buildtype != 'Release' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: symbols-${{ matrix.hmd }}-${{ matrix.buildtype }}
-        path: debug/**/*.so
+    # - name: Archive debug symbols
+    #   if: ${{ matrix.buildtype != 'Release' }}
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: symbols-${{ matrix.hmd }}-${{ matrix.buildtype }}
+    #     path: debug/**/*.so
 
   release:
     name: Create release
@@ -245,13 +245,17 @@ jobs:
     - name: set up JDK 11
       uses: actions/setup-java@v3
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
         cache: gradle
 
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+
     - name: Install dependencies
       run: >
-        sudo apt-get update && sudo apt-get install glslang-tools -y
+        sudo apt-get update && sudo apt-get install -y glslang-tools librsvg2-bin
 
     - name: Secrets
       if: ${{ github.event_name != 'pull_request' }}
@@ -262,11 +266,11 @@ jobs:
         echo signingKeyPassword="$APK_SIGNINGKEYPASSWORD" > gradle.properties
         echo "$APK_KEYSTORE_BASE64" | base64 --decode --ignore-garbage > ks.keystore
 
-    - name: Build (debug only)
-      if: ${{ github.event_name == 'pull_request' }}
-      run: |
-        chmod +x gradlew
-        ./gradlew assembleOculusDebug assembleOculusDebugWithValidationLayer
+    # - name: Build (debug only)
+    #   if: ${{ github.event_name == 'pull_request' }}
+    #   run: |
+    #     chmod +x gradlew
+    #     ./gradlew assembleOculusDebug assembleOculusDebugWithValidationLayer
 
     - name: Build
       if: ${{ github.event_name != 'pull_request' }}
@@ -276,21 +280,21 @@ jobs:
 
     - name: Prepare before archiving artifacts
       run: |
-        mkdir apk
+        mkdir apk || true
         mv $(find build/outputs/apk/ -name "*.apk") apk/
 
-    - name: Archive artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: APK
-        path: apk/*.apk
+    # - name: Archive artifacts
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: APK
+    #     path: apk/*.apk
 
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        tag_name: ${{ inputs.ref }}
-        generate_release_notes: true
-        draft: true
-        files: |
-          apk/WiVRn-oculus-release.apk
+    # - name: Release
+    #   uses: softprops/action-gh-release@v1
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   with:
+    #     tag_name: ${{ inputs.ref }}
+    #     generate_release_notes: true
+    #     draft: true
+    #     files: |
+    #       apk/WiVRn-oculus-release.apk
